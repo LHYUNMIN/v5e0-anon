@@ -62,8 +62,13 @@ class SSDTree:
         self.n_input = len(parents) - 1     # 1 + M + M*K
         self.cont2_start = [1 + M + i*K for i in range(M)]
 
-    def build_mask_and_pos(self, prompt_len, device, dtype, qwen=False):
-        """Each tree node attends to: prefix + self + ancestor chain (siblings masked)."""
+    def build_mask_and_pos(self, prompt_len, device, dtype, qwen=False, rope_delta=0):
+        """Each tree node attends to: prefix + self + ancestor chain (siblings masked).
+
+        `rope_delta` shifts position_ids (used for Qwen-VL MRoPE: position_id
+        for text after the image is cache_position + rope_deltas, not the raw
+        cache_position).
+        """
         seq = self.n_input
         mask = torch.full((seq, prompt_len + seq), float('-inf'), device=device, dtype=dtype)
         mask[:, :prompt_len] = 0.0
@@ -75,7 +80,7 @@ class SSDTree:
                 mask[in_idx, prompt_len + cur - 1] = 0.0
                 cur = self.parents[cur]
         pos = torch.tensor(
-            [prompt_len + self.depths[i] - 1 for i in range(1, len(self.parents))],
+            [prompt_len + self.depths[i] - 1 + rope_delta for i in range(1, len(self.parents))],
             device=device, dtype=torch.long,
         )
         if qwen:
@@ -211,6 +216,10 @@ class V5e0:
         self.tree = tree or SSDTree(M=5, K=3)
         self.lm_head = verifier.get_output_embeddings()
         self.E = verifier.get_input_embeddings().weight.detach().to(torch.float32)
+        # MRoPE rope_deltas captured during prefill (Qwen-VL family); applied
+        # to position_ids of every decode-mode step so MRoPE positions land on
+        # the correct post-image-expansion text positions.
+        self.rope_delta = 0
 
     @torch.no_grad()
     def prepare(self, image_path, prompt_text):
@@ -237,12 +246,21 @@ class V5e0:
 
     @torch.no_grad()
     def prefill(self, inputs):
-        """Run verifier on prompt; return (kv, h_t, last_logits, prompt_len)."""
+        """Run verifier on prompt; return (kv, h_t, last_logits, prompt_len).
+        Also captures `rope_deltas` for Qwen-VL family so MRoPE position_ids
+        are correct in subsequent decode-mode steps.
+        """
         out = self.V(**inputs, past_key_values=DynamicCache(),
                      use_cache=True, output_hidden_states=True, return_dict=True)
         kv = to_tuple_kv(out.past_key_values)
         h_t = out.hidden_states[-1][0, -1, :].float()
         ll  = out.logits[0, -1, :].float()
+        rd = getattr(out, "rope_deltas", None)
+        if self.is_qwen and rd is not None:
+            try:    self.rope_delta = int(rd.flatten()[0].item())
+            except Exception: self.rope_delta = 0
+        else:
+            self.rope_delta = 0
         return kv, h_t, ll, kv[0][0].shape[2]
 
     @torch.no_grad()
@@ -271,7 +289,8 @@ class V5e0:
             tree_ids.extend(cont2_tops[i].tolist())
         x = torch.tensor([tree_ids], device=h_t.device)
         mask, pos = self.tree.build_mask_and_pos(prompt_len, x.device, self.V.dtype,
-                                                  qwen=self.is_qwen)
+                                                  qwen=self.is_qwen,
+                                                  rope_delta=self.rope_delta)
         cache_pos = torch.arange(prompt_len, prompt_len + self.tree.n_input, device=x.device)
         out = self.V(input_ids=x, past_key_values=kv_to_cache(kv),
                      attention_mask=mask, position_ids=pos, cache_position=cache_pos,

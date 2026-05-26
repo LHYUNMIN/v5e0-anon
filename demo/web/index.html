@@ -3,135 +3,59 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>V5e-0 Demo: AR vs Speculative Decoding</title>
-<link rel="stylesheet" href="style.css">
+<title>V5e-0 vs AR</title>
+<link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
 
 <header>
-  <h1>V5e-0: VLM Speculative Decoding</h1>
-  <p class="sub">
-    Watch how V5e-0 generates the same tokens as autoregressive (AR) decoding, but
-    <strong>~2× faster</strong>, by speculating multiple tokens per verifier forward.
-  </p>
-  <div class="model-badge" id="model-badge">
-    <span class="badge-label">Verifier:</span>
-    <span class="badge-value" id="badge-model">loading…</span>
-    <span class="badge-sep">·</span>
-    <span class="badge-label">Drafter:</span>
-    <span class="badge-value" id="badge-drafter">—</span>
-    <span class="badge-sep">·</span>
-    <span class="badge-label">Tree:</span>
-    <span class="badge-value" id="badge-tree">—</span>
-  </div>
+  <h1>AR vs V5e-0</h1>
 </header>
 
-<div class="mode-toggle">
-  <button id="mode-replay" class="mode-btn active">📼 Replay Mode</button>
-  <button id="mode-live" class="mode-btn">🎤 Live Mode (upload & run)</button>
+<div class="controls">
+  <label>Model
+    <select id="model-select"></select>
+  </label>
+  <label>Max tokens
+    <input type="number" id="max-tokens" value="64" min="8" max="256" step="8">
+  </label>
 </div>
 
-<!-- ============================================================
-     REPLAY MODE — pre-recorded samples
-     ============================================================ -->
-<div id="replay-panel" class="panel">
-  <div class="controls">
-    <label>Example:
-      <select id="example-select"></select>
-    </label>
-    <button id="play-btn">▶ Play</button>
-    <button id="reset-btn">↺ Reset</button>
-    <label>Speed:
-      <select id="speed-select">
-        <option value="1">1× (real time)</option>
-        <option value="2" selected>2×</option>
-        <option value="4">4×</option>
-        <option value="8">8×</option>
-      </select>
-    </label>
-  </div>
-
-  <div class="prompt-box">
-    <img id="prompt-image" alt="prompt image">
-    <div class="prompt-text">
-      <div class="label">Prompt:</div>
-      <div id="prompt-content"></div>
-    </div>
-  </div>
+<div class="input-row">
+  <label class="upload-area">
+    <input type="file" id="image-input" accept="image/*">
+    <span id="image-label">Click or drop an image</span>
+    <img id="image-preview" style="display:none">
+  </label>
+  <textarea id="prompt-input" rows="2"
+            placeholder="Type a prompt...">Describe this image.</textarea>
+  <button id="run-btn" disabled>Run</button>
 </div>
 
-<!-- ============================================================
-     LIVE MODE — upload image + enter prompt
-     ============================================================ -->
-<div id="live-panel" class="panel" style="display:none">
-  <div class="live-controls">
-    <div class="live-row">
-      <label class="upload-area">
-        <input type="file" id="live-image" accept="image/*">
-        <span id="live-image-label">📷 Click or drop an image here</span>
-        <img id="live-image-preview" style="display:none">
-      </label>
-    </div>
-    <div class="live-row">
-      <label>Prompt:</label>
-      <textarea id="live-prompt" placeholder="Describe this image..."
-                rows="2">Describe this image in detail.</textarea>
-    </div>
-    <div class="live-row">
-      <label>Max tokens:
-        <input type="number" id="live-max-tokens" value="64" min="8" max="256" step="8">
-      </label>
-      <button id="live-submit" disabled>▶ Run AR vs V5e-0</button>
-    </div>
-    <div id="live-status"></div>
-  </div>
-</div>
+<div id="status"></div>
 
-<!-- ============================================================
-     Shared output (both modes use this)
-     ============================================================ -->
 <div class="comparison">
   <div class="pane">
     <div class="pane-header">
-      <h2>AR Baseline</h2>
-      <div class="metric">
-        <span id="ar-elapsed">0</span> ms
-        &middot; <span id="ar-tokens">0</span> tok
-        &middot; <span id="ar-tps">0</span> tok/s
-      </div>
+      <h2>AR</h2>
+      <span class="metric"><span id="ar-elapsed">0</span> ms / <span id="ar-tps">0</span> tok·s⁻¹</span>
     </div>
     <div class="output" id="ar-output"></div>
-    <div class="bar-container"><div class="bar ar-bar" id="ar-bar"></div></div>
   </div>
 
   <div class="pane">
     <div class="pane-header">
-      <h2>V5e-0 SSD (ours)</h2>
-      <div class="metric">
-        <span id="ssd-elapsed">0</span> ms
-        &middot; <span id="ssd-tokens">0</span> tok
-        &middot; <span id="ssd-tps">0</span> tok/s
-      </div>
+      <h2>V5e-0</h2>
+      <span class="metric"><span id="ssd-elapsed">0</span> ms / <span id="ssd-tps">0</span> tok·s⁻¹</span>
     </div>
     <div class="output" id="ssd-output"></div>
-    <div class="bar-container"><div class="bar ssd-bar" id="ssd-bar"></div></div>
   </div>
 </div>
 
 <div class="speedup-banner">
-  <span class="label">Wall-clock speedup:</span>
-  <span class="value" id="speedup-value">—</span>
-  ×
+  <span id="speedup-value">—</span>×
 </div>
 
-<footer>
-  <p>
-    V5e-0 emits multiple tokens per verifier forward by speculating with a tiny linear
-    drafter (4.72M params) and verifying via greedy SSD. Tokens that appear in <em>bursts</em>
-    of 2-4 in the right pane are tokens accepted in a single verifier round.
-  </p>
-</footer>
-
-<script src="main.js"></script>
+<script src="main.js?v=3"></script>
 </body>
 </html>

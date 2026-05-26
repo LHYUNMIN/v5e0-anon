@@ -279,7 +279,7 @@ def setup_new_vlm(vlm_name):
         proc = AutoProcessor.from_pretrained(cfg["model_id"], trust_remote_code=True)
         # Use Qwen-VL-style preparation (compare_vlm_ssd_infer.prepare_vlm_inputs)
         sys.path.insert(0, "./vendor")
-        from vlm_io import prepare_vlm_inputs
+        from compare_vlm_ssd_infer import prepare_vlm_inputs
         prep = lambda s: prepare_vlm_inputs(proc, s["image"], s["prompt"], "cuda")
         is_qwen = True   # Qwen-style 3D position ids
     elif cls == "paligemma":
@@ -698,7 +698,7 @@ def main(vlm_name, save_ckpt, n_test):
         "n_prompts": len(ar_list),
         "raw": {"ar": ar_list, "ssd": ssd_list, "sp": sp},
     }
-    save_path = f"./results/path1_v5e0_d3_4vlm_{vlm_name}.json"
+    save_path = f"/tmp/path1_v5e0_d3_4vlm_{vlm_name}.json"
     with open(save_path, "w") as f: json.dump(out, f, indent=2)
     print(f"\n[saved {save_path}]")
 

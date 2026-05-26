@@ -6,6 +6,32 @@ V5e-0 is a self-speculative decoding (SSD) framework that drafts candidate conti
 
 Across **fifteen verifier VLMs** spanning four families (Qwen-VL, LLaVA, PaliGemma, Idefics2) and adding GLM-4V / InternVL3.5 / Pixtral, V5e-0 obtains an average **1.89× wall-clock speedup** over greedy autoregressive decoding while preserving answer-level accuracy on six vision-grounded benchmarks.
 
+## Demo
+
+A side-by-side recording of greedy AR vs. V5e-0 on **LLaVA-1.5-7B**, a single A100, with the COCO sample image bundled in `demo/sample.jpg`:
+
+![AR vs V5e-0 demo (LLaVA-1.5-7B, sp 1.46×)](demo/demo_race_llava.gif)
+
+The AR pane streams one token per verifier forward. The V5e-0 pane streams in **green bursts of 2--3 tokens** per verifier forward (each green span = one multi-token accept). Total wall-clock for the same 64 greedy tokens: **AR 1714 ms → V5e-0 1178 ms = 1.46× faster** with identical text output.
+
+Reproduce locally:
+```bash
+# After scripts/prepare_data.sh + python src/run.py --vlm llava-1.5-7b
+python demo.py --model llava-1.5-7b --race --prompt "Describe this image briefly."
+```
+
+For accurate sp measurement with warm-up and N-run averaging:
+```bash
+python demo.py --model llava-1.5-7b --runs 5
+```
+
+Or run all five demo models on the same prompt:
+```bash
+python demo.py --all --runs 5
+```
+
+A live browser-based version (no setup required) is hosted at the anonymous URL noted in the paper's *Code release* paragraph; note that the hosted version runs on a shared GPU so the observed sp is lower than the local-GPU number above.
+
 ---
 
 ## Repository layout
@@ -133,32 +159,21 @@ Expected output (subject to bf16 numerical variation):
 
 ---
 
-## Demo
+## Browser demo (hosted)
 
-**Live demo (upload your own image + prompt):**
+For visitors who do not have a local GPU, a browser-based version with a model dropdown is hosted at the anonymous URL noted in the paper's *Code release* paragraph. Five verifier VLMs are selectable: Qwen2-VL-2B, Qwen3-VL-4B, LLaVA-1.5-7B, LLaVA-1.6-Mistral-7B, InternVL3.5-8B.
 
-> 🔗 **https://saying-lion-rather-fare.trycloudflare.com/**
+**Caveat:** the hosted server runs on a shared A100 and adds WebSocket / async overhead, so the observed `sp` is lower than the paper-reported numbers. For accurate `sp` reproduction on the reviewer's own hardware, use `demo.py` as shown in the Demo section above.
 
-Upload any image, type a prompt, and the page runs both **AR baseline** (left pane) and **V5e-0 SSD** (right pane) live, streaming tokens as they are generated. The right pane emits tokens in green bursts of 2--4 — these bursts are the multi-token accept events that produce the wall-clock speedup. The header shows a live speedup number.
-
-The page also ships with five pre-recorded LLaVA-1.5-7B examples (speedups 1.02--2.06×) selectable from the dropdown, so visitors without a custom image to upload can see the speedup mechanism without any setup.
-
-### Self-host
+### Self-host the browser demo
 
 ```bash
-# Train a Qwen2-VL-2B drafter first (saves checkpoints/v5e0_qwen2-2b.pt)
-python src/run.py --vlm qwen2-2b --gpu 0
-
-# Run the live demo server
 pip install fastapi uvicorn python-multipart
-python demo/server.py \
-    --model_path Qwen/Qwen2-VL-2B-Instruct \
-    --ckpt checkpoints/v5e0_qwen2-2b.pt \
-    --host 0.0.0.0 --port 8000
+python demo/server.py --port 8000 --gpu 0 --preload qwen2-2b
 # open http://localhost:8000
 ```
 
-See `demo/README.md` for protocol details and customisation.
+See `demo/README.md` for protocol details, multi-model lazy-load, and customisation.
 
 ---
 
