@@ -1,0 +1,16 @@
+torch>=2.1.0
+transformers==5.5.4
+qwen-vl-utils
+accelerate
+pillow
+numpy<2.0
+datasets
+sentencepiece
+protobuf<5.0
+einops
+huggingface_hub
+# Demo
+gradio>=4.0
+# Optional eval utilities
+rouge-score
+pypdf

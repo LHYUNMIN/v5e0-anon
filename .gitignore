@@ -1,0 +1,18 @@
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+.env
+*.log
+data/coco/
+data/llava_messages_100k.jsonl
+checkpoints/
+*.pt
+*.pdf
+*.png
+*.jpg
+# allow paper figures
+!figures/*.pdf
+!figures/*.jpg
+!figures/*.png
+!demo/demo_recording*
