@@ -10,14 +10,14 @@ Across **fifteen verifier VLMs** spanning four families (Qwen-VL, LLaVA, PaliGem
 
 A side-by-side recording of greedy AR vs. V5e-0 on **LLaVA-1.5-7B**, a single A100, with the COCO sample image bundled in `demo/sample.jpg`:
 
-![AR vs V5e-0 demo (LLaVA-1.5-7B, sp 1.46×)](demo/demo_race_llava.gif)
+![AR vs V5e-0 demo (LLaVA-1.5-7B, sp 1.71×)](demo/demo_race_llava.gif)
 
-The AR pane streams one token per verifier forward. The V5e-0 pane streams in **green bursts of 2--3 tokens** per verifier forward (each green span = one multi-token accept). Total wall-clock for the same 64 greedy tokens: **AR 1714 ms → V5e-0 1178 ms = 1.46× faster** with identical text output.
+The AR pane streams one token per verifier forward. The V5e-0 pane streams in **green bursts of 2–3 tokens** per verifier forward (each green span = one multi-token accept). Total wall-clock for the same **128 greedy tokens**: **AR ~3.5 s (37 tok/s) → V5e-0 2.05 s (62.5 tok/s) = 1.71× faster**, TPI 2.10, 61 rounds. This is 91% of LLaVA-1.5-7B's paper-reported 1.87× (the paper number is averaged over 30 prompts; single-prompt results vary ±10–20%).
 
 Reproduce locally:
 ```bash
 # After scripts/prepare_data.sh + python src/run.py --vlm llava-1.5-7b
-python demo.py --model llava-1.5-7b --race --prompt "Describe this image briefly."
+python demo.py --model llava-1.5-7b --race --max_tokens 128 --prompt "What is in the image?"
 ```
 
 For accurate sp measurement with warm-up and N-run averaging:
