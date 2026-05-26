@@ -135,17 +135,30 @@ Expected output (subject to bf16 numerical variation):
 
 ## Demo
 
-`demo/web/` is a static side-by-side replay viewer for AR vs.\ V5e-0. It ships with five pre-recorded LLaVA-1.5-7B examples (speedups 1.02--2.06×) so reviewers can see the speedup mechanism without running inference.
+**Live demo (upload your own image + prompt):**
 
-**Quick local view:**
+> 🔗 **https://saying-lion-rather-fare.trycloudflare.com/**
+
+Upload any image, type a prompt, and the page runs both **AR baseline** (left pane) and **V5e-0 SSD** (right pane) live, streaming tokens as they are generated. The right pane emits tokens in green bursts of 2--4 — these bursts are the multi-token accept events that produce the wall-clock speedup. The header shows a live speedup number.
+
+The page also ships with five pre-recorded LLaVA-1.5-7B examples (speedups 1.02--2.06×) selectable from the dropdown, so visitors without a custom image to upload can see the speedup mechanism without any setup.
+
+### Self-host
+
 ```bash
-cd demo/web && python -m http.server 8000
+# Train a Qwen2-VL-2B drafter first (saves checkpoints/v5e0_qwen2-2b.pt)
+python src/run.py --vlm qwen2-2b --gpu 0
+
+# Run the live demo server
+pip install fastapi uvicorn python-multipart
+python demo/server.py \
+    --model_path Qwen/Qwen2-VL-2B-Instruct \
+    --ckpt checkpoints/v5e0_qwen2-2b.pt \
+    --host 0.0.0.0 --port 8000
 # open http://localhost:8000
 ```
 
-A hosted version (no signup required for the viewer) is linked in the paper's Code release paragraph. The hosted URL is anonymous (no GitHub username or author info). See `demo/README.md` for full deployment options (Cloudflare Pages / Netlify / GitHub Pages / static-only).
-
-For interactive live inference (upload your own image), `demo/server.py` runs a FastAPI server that streams AR and SSD tokens over WebSocket; requires a GPU and a trained drafter checkpoint.
+See `demo/README.md` for protocol details and customisation.
 
 ---
 
