@@ -135,7 +135,17 @@ Expected output (subject to bf16 numerical variation):
 
 ## Demo
 
-A live Gradio demo on Qwen2-VL-2B is available at the URL in the paper's "Code release" paragraph (we cannot include the URL here while the submission is double-blind). An offline screen recording of the demo and three example screenshots are checked in under `demo/`.
+`demo/web/` is a static side-by-side replay viewer for AR vs.\ V5e-0. It ships with five pre-recorded LLaVA-1.5-7B examples (speedups 1.02--2.06×) so reviewers can see the speedup mechanism without running inference.
+
+**Quick local view:**
+```bash
+cd demo/web && python -m http.server 8000
+# open http://localhost:8000
+```
+
+A hosted version (no signup required for the viewer) is linked in the paper's Code release paragraph. The hosted URL is anonymous (no GitHub username or author info). See `demo/README.md` for full deployment options (Cloudflare Pages / Netlify / GitHub Pages / static-only).
+
+For interactive live inference (upload your own image), `demo/server.py` runs a FastAPI server that streams AR and SSD tokens over WebSocket; requires a GPU and a trained drafter checkpoint.
 
 ---
 

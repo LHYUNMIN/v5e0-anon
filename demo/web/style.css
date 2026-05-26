@@ -1,0 +1,180 @@
+* { box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #f7f9fb;
+  color: #1a202c;
+  margin: 0 auto;
+  padding: 1.5rem;
+  max-width: 1200px;
+}
+
+header { text-align: center; margin-bottom: 1.5rem; }
+header h1 { font-size: 1.75rem; margin: 0 0 0.5rem 0; color: #2d3748; }
+header .sub { color: #4a5568; font-size: 1rem; margin: 0; }
+header .sub strong { color: #2b6cb0; }
+
+.model-badge {
+  display: inline-flex; flex-wrap: wrap; justify-content: center;
+  gap: 0.4rem; align-items: center;
+  margin-top: 0.85rem; padding: 0.5rem 1rem;
+  background: #fff; border: 1px solid #cbd5e0; border-radius: 999px;
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 0.82rem; color: #2d3748;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.badge-label { color: #718096; font-weight: 600; }
+.badge-value { color: #2b6cb0; font-weight: 500; }
+.badge-sep { color: #cbd5e0; }
+
+/* Mode toggle */
+.mode-toggle {
+  display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 1.5rem;
+}
+.mode-btn {
+  background: #fff; border: 1px solid #cbd5e0; padding: 0.5rem 1rem;
+  border-radius: 6px; font-size: 0.95rem; cursor: pointer;
+}
+.mode-btn.active {
+  background: #2b6cb0; color: #fff; border-color: #2b6cb0;
+}
+.mode-btn:hover:not(.active) { background: #edf2f7; }
+
+.panel { margin-bottom: 1rem; }
+
+.controls {
+  display: flex; justify-content: center; gap: 1rem; align-items: center;
+  margin: 1rem 0; flex-wrap: wrap;
+}
+.controls label, .controls button {
+  background: #fff; padding: 0.5rem 1rem; border-radius: 6px;
+  border: 1px solid #cbd5e0; font-size: 0.95rem;
+}
+.controls button {
+  cursor: pointer; background: #2b6cb0; color: #fff;
+  border: 1px solid #2b6cb0; font-weight: 500;
+}
+.controls button:hover { background: #2c5282; }
+.controls button:disabled { background: #cbd5e0; cursor: not-allowed; }
+.controls select {
+  border: none; margin-left: 0.5rem; background: transparent;
+  font-size: inherit; font-family: inherit; cursor: pointer;
+}
+
+.prompt-box {
+  display: flex; align-items: flex-start; gap: 1rem; background: #fff;
+  padding: 1rem; border-radius: 8px; border: 1px solid #e2e8f0;
+}
+.prompt-box img {
+  max-width: 200px; max-height: 150px; border-radius: 6px; object-fit: cover;
+}
+.prompt-text { flex: 1; }
+.prompt-text .label {
+  font-weight: 600; color: #4a5568; font-size: 0.85rem;
+  text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem;
+}
+#prompt-content { font-size: 1rem; color: #1a202c; }
+
+/* Live mode controls */
+.live-controls {
+  background: #fff; padding: 1rem; border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+.live-row {
+  display: flex; align-items: center; gap: 1rem; margin: 0.5rem 0;
+}
+.live-row label { font-weight: 500; color: #4a5568; }
+.upload-area {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; min-height: 100px; border: 2px dashed #cbd5e0;
+  border-radius: 6px; cursor: pointer; padding: 0.5rem;
+  position: relative;
+}
+.upload-area:hover { border-color: #2b6cb0; }
+.upload-area input[type=file] { display: none; }
+#live-image-label { color: #718096; font-size: 0.95rem; }
+#live-image-preview {
+  max-width: 200px; max-height: 100px; border-radius: 4px;
+}
+#live-prompt {
+  flex: 1; padding: 0.5rem; border-radius: 6px; border: 1px solid #cbd5e0;
+  font-family: inherit; font-size: 0.95rem; resize: vertical;
+}
+#live-max-tokens {
+  width: 80px; padding: 0.5rem; border-radius: 6px; border: 1px solid #cbd5e0;
+}
+#live-submit {
+  background: #2b6cb0; color: #fff; border: 1px solid #2b6cb0;
+  padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer;
+  font-weight: 500; margin-left: auto;
+}
+#live-submit:hover:not(:disabled) { background: #2c5282; }
+#live-submit:disabled { background: #cbd5e0; cursor: not-allowed; }
+#live-status {
+  margin-top: 0.5rem; font-size: 0.9rem; color: #4a5568;
+  font-family: ui-monospace, monospace;
+}
+#live-status.error { color: #c53030; }
+#live-status.running { color: #2b6cb0; }
+
+.comparison {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;
+}
+.pane {
+  background: #fff; border-radius: 8px; border: 1px solid #e2e8f0;
+  padding: 1rem; display: flex; flex-direction: column;
+}
+.pane-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e2e8f0;
+}
+.pane-header h2 { margin: 0; font-size: 1.1rem; }
+.pane:first-child .pane-header h2 { color: #718096; }
+.pane:last-child .pane-header h2 { color: #2b6cb0; }
+.metric {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 0.85rem; color: #4a5568;
+}
+.output {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 0.95rem; line-height: 1.5; min-height: 200px; padding: 0.5rem;
+  background: #f7fafc; border-radius: 6px;
+  white-space: pre-wrap; word-break: break-word;
+  overflow-y: auto; max-height: 320px;
+}
+.output .burst {
+  background: #c6f6d5; border-radius: 3px; padding: 0 1px;
+  transition: background 0.3s ease;
+}
+.output .burst.fresh { background: #68d391; }
+
+.bar-container {
+  height: 4px; background: #edf2f7; border-radius: 2px;
+  overflow: hidden; margin-top: 0.75rem;
+}
+.bar { height: 100%; width: 0; transition: width 100ms linear; }
+.ar-bar { background: #cbd5e0; }
+.ssd-bar { background: #2b6cb0; }
+
+.speedup-banner {
+  text-align: center; font-size: 1.5rem; font-weight: 500; color: #2d3748;
+  background: linear-gradient(90deg, #ebf8ff 0%, #fff 100%);
+  padding: 1rem; border-radius: 8px; border: 1px solid #bee3f8;
+}
+.speedup-banner .label {
+  font-size: 1rem; color: #4a5568; margin-right: 0.5rem;
+}
+.speedup-banner .value {
+  font-size: 2rem; font-weight: 700; color: #2b6cb0;
+}
+
+footer {
+  text-align: center; margin-top: 2rem; color: #4a5568; font-size: 0.9rem;
+}
+footer p { margin: 0.5rem 0; }
+
+@media (max-width: 720px) {
+  .comparison { grid-template-columns: 1fr; }
+  .prompt-box { flex-direction: column; }
+  .prompt-box img { max-width: 100%; }
+}
